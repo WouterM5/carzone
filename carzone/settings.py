@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+from decouple import config
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,12 +22,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'oig*m2qly(p@w4c6u67+2uunqz)fgi714ixjj%6ngn_+ts+h3p'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
+
 
 ALLOWED_HOSTS = []
+
+LOGIN_REDIRECT_URL = 'dashboard'
 
 
 # Application definition
@@ -40,9 +45,24 @@ INSTALLED_APPS = [
 
     'pages.apps.PagesConfig',
     'cars.apps.CarsConfig',
+    'contacts.apps.ContactsConfig',
+    'accounts.apps.AccountsConfig',
+
     'ckeditor',
     'django.contrib.humanize',
+
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+
+    # Providers
+    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
+
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -81,12 +101,12 @@ WSGI_APPLICATION = 'carzone.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'carzone_db',
-        'USER': 'postgres',
-        'PASSWORD': '123456',
-        'HOST': 'localhost',
-        'PORT': '5433',
-        'TIMEZONE': 'UTC',
+        'NAME': config('DB_NAME'),
+        'USER':config('DB_USER'),
+        'PASSWORD':config('DB_PASSWORD'),
+        'HOST':config('DB_HOST'),
+        'PORT': config('DB_PORT'),
+        'TIMEZONE':config('DB_TIMEZONE'),
         
     }
 }
@@ -138,3 +158,36 @@ STATICFILES_DIRS = [
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# Messqges
+
+from django.contrib.messages import constants as messages
+MESSAGE_TAGS = {
+    messages.INFO: '',
+    messages.ERROR:'danger',
+    messages.SUCCESS:'success',
+
+}
+
+SITE_ID = 1
+
+SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
+
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'facebook': {
+        'METHOD': 'js_sdk',
+        'SDK_URL': '//connect.facebook.net/{locale}/sdk.js',
+        'SCOPE': ['email', 'public_profile'],
+        'FIELDS': [
+            'first_name',
+            'last_name',
+        ],
+    }
+}
+
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
